@@ -14,6 +14,9 @@
     "prisma:migrate": "cd backend && npx prisma migrate dev",
     "prisma:generate": "cd backend && npx prisma generate"
   },
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "devDependencies": {
     "concurrently": "^9.1.2"
   }
