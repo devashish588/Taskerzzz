@@ -1,0 +1,8 @@
+[build]
+builder = "NIXPACKS"
+
+[build.env]
+NIXPACKS_BUILD_CMD = "npm run build"
+
+[deploy]
+startCommand = "npx serve dist -s -l $PORT"

@@ -1,0 +1,19 @@
+{
+  "name": "taskflow-enterprise",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TaskFlow Enterprise - Team Task Manager",
+  "scripts": {
+    "dev": "concurrently -n backend,frontend -c blue,cyan \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "install:all": "cd backend && npm install && cd ../frontend && npm install",
+    "build": "cd frontend && npm run build",
+    "seed": "cd backend && npm run seed",
+    "prisma:migrate": "cd backend && npx prisma migrate dev",
+    "prisma:generate": "cd backend && npx prisma generate"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

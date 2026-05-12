@@ -1,0 +1,634 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-base-950: #000611;
+  --color-base-900: #000B58;
+  --color-base-800: #001245;
+  --color-base-700: #003161;
+  --color-base-600: #00406e;
+  --color-base-500: #00507a;
+  --color-base-400: #1a6a8a;
+  --color-base-300: #4d8da6;
+  --color-base-200: #80b0c2;
+  --color-base-100: #b3d4de;
+  --color-accent: #006A67;
+  --color-accent-light: #008C88;
+  --color-accent-dark: #005452;
+  --color-cream: #FFF4B7;
+  --color-cream-dark: #e6db9f;
+  --color-cream-dim: #d4c97a;
+  --color-orange: #ff8c42;
+  --color-orange-light: #ffa566;
+  --color-success: #2dd4a8;
+  --color-success-light: #5ae4c2;
+  --color-danger: #f0506e;
+  --color-danger-light: #f47a90;
+  --color-warning: #f0c040;
+  --color-warning-light: #f5d060;
+  --color-purple: #7c6aef;
+  --font-heading: 'Syne', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-body: 'Inter', sans-serif;
+}
+
+/* ============================================
+   RESET & BASE
+   ============================================ */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-base-950);
+  color: #dce4ec;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); font-weight: 700; }
+code, .mono { font-family: var(--font-mono); }
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-base-500); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-base-400); }
+
+/* ============================================
+   APP SHELL — Sidebar + Main layout
+   ============================================ */
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Main content area — offset by sidebar width */
+.app-main {
+  margin-left: 280px;
+  flex: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: margin-left 0.2s ease;
+}
+
+.app-main--collapsed {
+  margin-left: 72px;
+}
+
+.app-content {
+  flex: 1;
+  padding: 24px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* ============================================
+   SIDEBAR
+   ============================================ */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  background: var(--color-base-900);
+  border-right: 1px solid rgba(0, 49, 97, 0.6);
+  display: flex;
+  flex-direction: column;
+  z-index: 40;
+  transition: width 0.2s ease;
+  overflow: hidden;
+}
+
+.sidebar--desktop {
+  width: 280px;
+}
+
+.sidebar--desktop.sidebar--collapsed {
+  width: 72px;
+}
+
+/* Mobile sidebar — hidden by default, slides in */
+.sidebar--mobile {
+  display: none;
+}
+
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 6, 17, 0.7);
+  backdrop-filter: blur(2px);
+  z-index: 45;
+}
+
+/* Sidebar internals */
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(0, 49, 97, 0.5);
+  min-height: 60px;
+  position: relative;
+}
+
+.sidebar-logo--collapsed {
+  justify-content: center;
+  padding: 16px 12px;
+}
+
+.sidebar-logo-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-dark));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sidebar-collapse-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 49, 97, 0.6);
+  background: var(--color-base-800);
+  color: var(--color-base-200);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.sidebar-collapse-btn:hover {
+  background: var(--color-base-700);
+  color: var(--color-cream);
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 8px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  border-radius: 8px;
+  color: var(--color-base-200);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.15s;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  cursor: pointer;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+
+.sidebar-link:hover {
+  background: rgba(0, 106, 103, 0.1);
+  color: #fff;
+}
+
+.sidebar-link--active {
+  background: rgba(0, 106, 103, 0.15);
+  color: var(--color-cream);
+  border-color: rgba(0, 106, 103, 0.2);
+}
+
+.sidebar-link--collapsed {
+  justify-content: center;
+  padding: 10px;
+}
+
+.sidebar-link--danger {
+  color: var(--color-danger);
+}
+
+.sidebar-link--danger:hover {
+  background: rgba(240, 80, 110, 0.1);
+  color: var(--color-danger-light);
+}
+
+.sidebar-footer {
+  padding: 8px;
+  border-top: 1px solid rgba(0, 49, 97, 0.5);
+}
+
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  margin-bottom: 4px;
+}
+
+.sidebar-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--color-accent), var(--color-purple));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+.app-header {
+  height: 56px;
+  border-bottom: 1px solid rgba(0, 49, 97, 0.5);
+  background: rgba(0, 11, 88, 0.7);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.app-header-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 49, 97, 0.5);
+  background: transparent;
+  color: var(--color-base-200);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.app-header-btn:hover {
+  background: var(--color-base-700);
+  color: #fff;
+}
+
+.app-header-menu {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-base-200);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* ============================================
+   GLASS CARD
+   ============================================ */
+.glass-card {
+  background: rgba(0, 18, 69, 0.5);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 49, 97, 0.4);
+  border-radius: 12px;
+}
+
+/* ============================================
+   STAT CARD
+   ============================================ */
+.stat-card {
+  background: linear-gradient(145deg, rgba(0, 18, 69, 0.6) 0%, rgba(0, 49, 97, 0.35) 100%);
+  border: 1px solid rgba(0, 49, 97, 0.4);
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+  border-color: rgba(0, 106, 103, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(0, 106, 103, 0.08);
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%);
+  color: #fff;
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 0.85rem;
+}
+
+.btn-primary:hover {
+  box-shadow: 0 4px 16px rgba(0, 106, 103, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: rgba(0, 106, 103, 0.1);
+  color: var(--color-accent-light);
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 106, 103, 0.2);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 0.85rem;
+}
+
+.btn-secondary:hover {
+  background: rgba(0, 106, 103, 0.2);
+  border-color: rgba(0, 106, 103, 0.4);
+}
+
+.btn-danger {
+  background: rgba(240, 80, 110, 0.1);
+  color: var(--color-danger);
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1px solid rgba(240, 80, 110, 0.2);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-danger:hover { background: rgba(240, 80, 110, 0.2); }
+
+/* ============================================
+   INPUTS
+   ============================================ */
+.input {
+  background: rgba(0, 11, 88, 0.5);
+  border: 1px solid rgba(0, 49, 97, 0.6);
+  color: #dce4ec;
+  padding: 9px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  transition: border-color 0.15s;
+  width: 100%;
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px rgba(0, 106, 103, 0.1);
+}
+
+.input::placeholder { color: var(--color-base-400); }
+
+.select {
+  background: rgba(0, 11, 88, 0.5);
+  border: 1px solid rgba(0, 49, 97, 0.6);
+  color: #dce4ec;
+  padding: 9px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  outline: none;
+  cursor: pointer;
+}
+
+/* ============================================
+   BADGES
+   ============================================ */
+.badge {
+  padding: 3px 10px;
+  border-radius: 9999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.badge-assigned { background: rgba(77, 141, 166, 0.2); color: #4d8da6; }
+.badge-in-progress { background: rgba(0, 106, 103, 0.2); color: #2dd4a8; }
+.badge-in-review { background: rgba(255, 244, 183, 0.12); color: #FFF4B7; }
+.badge-completed { background: rgba(45, 212, 168, 0.2); color: #2dd4a8; }
+.badge-flagged { background: rgba(255, 140, 66, 0.2); color: #ff8c42; }
+.badge-skipped { background: rgba(128, 140, 160, 0.2); color: #90a0b4; }
+.badge-critical { background: rgba(240, 80, 110, 0.2); color: #f0506e; }
+.badge-high { background: rgba(255, 140, 66, 0.2); color: #ff8c42; }
+.badge-medium { background: rgba(255, 244, 183, 0.12); color: #FFF4B7; }
+.badge-low { background: rgba(45, 212, 168, 0.2); color: #2dd4a8; }
+.badge-active { background: rgba(45, 212, 168, 0.2); color: #2dd4a8; }
+.badge-on-hold { background: rgba(255, 244, 183, 0.12); color: #FFF4B7; }
+.badge-archived { background: rgba(128, 140, 160, 0.2); color: #90a0b4; }
+
+/* ============================================
+   SKELETON LOADER
+   ============================================ */
+.skeleton {
+  background: linear-gradient(90deg, var(--color-base-800) 25%, var(--color-base-700) 50%, var(--color-base-800) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 6px;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in { animation: fadeIn 0.3s ease-out; }
+
+/* ============================================
+   DATA TABLE
+   ============================================ */
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.data-table th {
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-base-300);
+  border-bottom: 1px solid rgba(0, 49, 97, 0.5);
+  background: rgba(0, 11, 88, 0.3);
+}
+
+.data-table td {
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  border-bottom: 1px solid rgba(0, 49, 97, 0.25);
+}
+
+.data-table tr:hover td {
+  background: rgba(0, 106, 103, 0.04);
+}
+
+/* ============================================
+   MODAL
+   ============================================ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 6, 17, 0.85);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.modal-content {
+  background: var(--color-base-800);
+  border: 1px solid rgba(0, 49, 97, 0.6);
+  border-radius: 14px;
+  padding: 24px;
+  max-width: 600px;
+  width: 92%;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+/* ============================================
+   PROGRESS BAR
+   ============================================ */
+.progress-bar {
+  height: 5px;
+  background: rgba(0, 49, 97, 0.5);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-accent), var(--color-success));
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+/* ============================================
+   KANBAN BOARD
+   ============================================ */
+.kanban-board {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  min-height: 400px;
+}
+
+.kanban-column {
+  min-width: 260px;
+  max-width: 300px;
+  flex: 1;
+  background: rgba(0, 11, 88, 0.25);
+  border: 1px solid rgba(0, 49, 97, 0.4);
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.kanban-card {
+  background: rgba(0, 18, 69, 0.7);
+  border: 1px solid rgba(0, 49, 97, 0.5);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  cursor: grab;
+  transition: all 0.15s;
+}
+
+.kanban-card:hover {
+  border-color: rgba(0, 106, 103, 0.35);
+  transform: translateY(-1px);
+}
+
+/* ============================================
+   TOAST
+   ============================================ */
+.toast-custom {
+  font-family: var(--font-body) !important;
+  background: var(--color-base-800) !important;
+  color: #dce4ec !important;
+  border: 1px solid rgba(0, 49, 97, 0.6) !important;
+  border-radius: 8px !important;
+  font-size: 0.85rem !important;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+/* Tablet: sidebar hidden, mobile drawer available */
+@media (max-width: 1023px) {
+  .sidebar--desktop {
+    display: none;
+  }
+
+  .sidebar--mobile {
+    display: flex;
+    width: 280px;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    z-index: 50;
+  }
+
+  .sidebar--mobile.sidebar--mobile-open {
+    transform: translateX(0);
+  }
+
+  .app-main,
+  .app-main--collapsed {
+    margin-left: 0;
+  }
+
+  .app-content {
+    padding: 16px;
+  }
+}
+
+/* Small screens */
+@media (max-width: 640px) {
+  .app-header {
+    padding: 0 16px;
+    height: 52px;
+  }
+
+  .app-content {
+    padding: 12px;
+  }
+
+  .kanban-board {
+    gap: 10px;
+  }
+
+  .kanban-column {
+    min-width: 240px;
+  }
+}
