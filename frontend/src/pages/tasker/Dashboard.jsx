@@ -20,7 +20,9 @@ const TaskerDashboard = () => {
         ]);
         setStats(statsRes.data.stats);
         setTasks(tasksRes.data.data);
-      } catch {}
+      } catch (err) {
+        console.error(err);
+      }
       setLoading(false);
     };
     load();

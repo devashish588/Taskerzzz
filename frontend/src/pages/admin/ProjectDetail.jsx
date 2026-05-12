@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, UserPlus, Trash2 } from 'lucide-react';
 import { projectsApi, usersApi } from '../../api/modules';
@@ -18,18 +18,25 @@ const ProjectDetail = () => {
   const [showAddMember, setShowAddMember] = useState(false);
   const [allUsers, setAllUsers] = useState([]);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     try {
       const res = await projectsApi.getById(id);
       setProject(res.data.project);
-    } catch { navigate('/projects'); }
+    } catch {
+      navigate('/projects');
+    }
     setLoading(false);
-  };
+  }, [id, navigate]);
 
-  useEffect(() => { load(); }, [id]);
+  useEffect(() => { load(); }, [load]);
 
   const loadUsers = async () => {
-    try { const res = await usersApi.getAll({ limit: 100, role: 'TASKER' }); setAllUsers(res.data.data); } catch {}
+    try {
+      const res = await usersApi.getAll({ limit: 100, role: 'TASKER' });
+      setAllUsers(res.data.data);
+    } catch (err) {
+      console.error(err);
+    }
     setShowAddMember(true);
   };
 
@@ -39,7 +46,7 @@ const ProjectDetail = () => {
 
   const removeMember = async (userId) => {
     if (!confirm('Remove this member?')) return;
-    try { await projectsApi.removeMember(id, userId); toast.success('Member removed'); load(); } catch (err) { toast.error('Failed'); }
+    try { await projectsApi.removeMember(id, userId); toast.success('Member removed'); load(); } catch { toast.error('Failed'); }
   };
 
   if (loading) return <LoadingSkeleton type="card" count={3} />;

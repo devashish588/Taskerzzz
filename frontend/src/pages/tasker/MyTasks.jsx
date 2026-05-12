@@ -34,7 +34,9 @@ const MyTasks = () => {
       ]);
       setTasks(tasksRes.data.data);
       setProjects(projRes.data.data);
-    } catch {}
+    } catch (err) {
+      console.error(err);
+    }
     setLoading(false);
   };
   useEffect(() => { load(); }, []);

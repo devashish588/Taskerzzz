@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { LayoutDashboard, FolderKanban, CheckSquare, Users, BarChart3, Settings, LogOut, Zap, ListTodo, User, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import useAuthStore from '../store/authStore';
@@ -17,7 +17,7 @@ const Sidebar = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) => {
   // Close mobile sidebar on route change
   useEffect(() => {
     setMobileOpen(false);
-  }, [location.pathname]);
+  }, [location.pathname, setMobileOpen]);
 
   const adminLinks = [
     { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },

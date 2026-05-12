@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search } from 'lucide-react';
-import { projectsApi, usersApi } from '../../api/modules';
+import { projectsApi } from '../../api/modules';
 import { StatusBadge } from '../../components/Badges';
 import Modal from '../../components/Modal';
 import LoadingSkeleton from '../../components/LoadingSkeleton';
@@ -16,15 +16,15 @@ const Projects = () => {
   const [form, setForm] = useState({ name: '', description: '', startDate: '', deadline: '' });
   const navigate = useNavigate();
 
-  const load = async () => {
+  const load = useCallback(async () => {
     try {
       const res = await projectsApi.getAll({ search, limit: 50 });
       setProjects(res.data.data);
     } catch (err) { console.error(err); }
     setLoading(false);
-  };
+  }, [search]);
 
-  useEffect(() => { load(); }, [search]);
+  useEffect(() => { load(); }, [load]);
 
   const handleCreate = async (e) => {
     e.preventDefault();

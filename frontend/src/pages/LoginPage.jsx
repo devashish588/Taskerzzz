@@ -5,9 +5,15 @@ import { Zap, Eye, EyeOff } from 'lucide-react';
 import useAuthStore from '../store/authStore';
 import toast from 'react-hot-toast';
 
+const QUICK_LOGINS = [
+  { label: 'Login as Admin', email: 'admin@taskerzz.com', password: 'admin123' },
+  { label: 'Login as Tasker', email: 'alice@taskerzz.com', password: 'tasker123' },
+];
+
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isRegister, setIsRegister] = useState(false);
+  const [quickLoginLabel, setQuickLoginLabel] = useState(null);
   const { login, register: registerUser } = useAuthStore();
   const navigate = useNavigate();
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm();
@@ -24,6 +30,19 @@ const LoginPage = () => {
       navigate('/dashboard');
     } catch (err) {
       toast.error(err.response?.data?.error || 'Something went wrong');
+    }
+  };
+
+  const handleQuickLogin = async ({ label, email, password }) => {
+    setQuickLoginLabel(label);
+    try {
+      await login(email, password);
+      toast.success('Welcome back.');
+      navigate('/dashboard');
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Login failed');
+    } finally {
+      setQuickLoginLabel(null);
     }
   };
 
@@ -89,6 +108,24 @@ const LoginPage = () => {
               {isRegister ? 'Already have an account? Sign in' : 'First time? Create admin account'}
             </button>
           </div>
+
+          {!isRegister && (
+            <div className="mt-6 border-t border-base-700/50 pt-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {QUICK_LOGINS.map((option) => (
+                  <button
+                    key={option.label}
+                    type="button"
+                    onClick={() => handleQuickLogin(option)}
+                    disabled={isSubmitting || !!quickLoginLabel}
+                    className="btn-secondary px-3 py-2.5 text-xs disabled:opacity-50"
+                  >
+                    {quickLoginLabel === option.label ? 'Signing in...' : option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

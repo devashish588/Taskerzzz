@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send, Trash2, Clock, Flag, CheckCircle, Timer } from 'lucide-react';
 import { tasksApi, commentsApi } from '../../api/modules';
@@ -21,11 +21,11 @@ const TaskDetail = () => {
   const [submitting, setSubmitting] = useState(false);
   const [showReview, setShowReview] = useState(false);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     try { const res = await tasksApi.getById(id); setTask(res.data.task); } catch { navigate(-1); }
     setLoading(false);
-  };
-  useEffect(() => { load(); }, [id]);
+  }, [id, navigate]);
+  useEffect(() => { load(); }, [load]);
 
   const updateStatus = async (status) => {
     try { await tasksApi.update(id, { status }); toast.success('Status updated'); load(); }

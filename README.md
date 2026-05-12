@@ -16,10 +16,11 @@
 
 ### Prerequisites
 - Node.js 18+
-- PostgreSQL running locally
+- PostgreSQL running locally, or Docker Desktop for the included local Postgres service
 
 ### Backend
 ```bash
+docker compose up -d postgres  # optional local Postgres on localhost:5433
 cd backend
 cp .env.example .env
 # Edit .env with your DATABASE_URL
@@ -39,10 +40,10 @@ npm run dev   # Starts on port 5173
 ### Demo Accounts
 | Role | Email | Password |
 |------|-------|----------|
-| Admin | admin@taskflow.com | admin123 |
-| Tasker | alice@taskflow.com | tasker123 |
-| Tasker | bob@taskflow.com | tasker123 |
-| Tasker | carol@taskflow.com | tasker123 |
+| Admin | admin@taskerzz.com | admin123 |
+| Tasker | alice@taskerzz.com | tasker123 |
+| Tasker | bob@taskerzz.com | tasker123 |
+| Tasker | carol@taskerzz.com | tasker123 |
 
 ## Features
 

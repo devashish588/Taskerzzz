@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, CheckCircle, Flag, X, Clock } from 'lucide-react';
+import { Plus, Search, CheckCircle, Flag, X } from 'lucide-react';
 import { tasksApi, projectsApi, usersApi } from '../../api/modules';
 import { StatusBadge, PriorityBadge } from '../../components/Badges';
 import Modal from '../../components/Modal';
@@ -22,7 +22,7 @@ const Tasks = () => {
   const [filters, setFilters] = useState({ search: '', status: '', priority: '', projectId: '' });
   const [form, setForm] = useState({ title: '', description: '', priority: 'MEDIUM', projectId: '', assignedToId: '', dueDate: '', estimatedMinutes: 10, category: '' });
 
-  const load = async () => {
+  const load = useCallback(async () => {
     try {
       const params = { limit: 100 };
       if (filters.search) params.search = filters.search;
@@ -33,16 +33,16 @@ const Tasks = () => {
       setTasks(res.data.data);
     } catch (err) { console.error(err); }
     setLoading(false);
-  };
+  }, [filters]);
 
-  useEffect(() => { load(); }, [filters]);
+  useEffect(() => { load(); }, [load]);
 
   useEffect(() => {
     if (isAdmin) {
-      projectsApi.getAll({ limit: 100 }).then((r) => setProjects(r.data.data)).catch(() => {});
-      usersApi.getAll({ limit: 100 }).then((r) => setUsers(r.data.data)).catch(() => {});
+      projectsApi.getAll({ limit: 100 }).then((r) => setProjects(r.data.data)).catch(console.error);
+      usersApi.getAll({ limit: 100 }).then((r) => setUsers(r.data.data)).catch(console.error);
     }
-  }, []);
+  }, [isAdmin]);
 
   const handleCreate = async (e) => {
     e.preventDefault();

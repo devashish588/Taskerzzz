@@ -27,7 +27,7 @@ function App() {
   const { checkAuth, isLoading } = useAuthStore();
   const { initTheme } = useThemeStore();
 
-  useEffect(() => { initTheme(); checkAuth(); }, []);
+  useEffect(() => { initTheme(); checkAuth(); }, [checkAuth, initTheme]);
 
   if (isLoading) {
     return (

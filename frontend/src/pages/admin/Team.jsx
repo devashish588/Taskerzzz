@@ -15,7 +15,7 @@ const Team = () => {
   const [targetValue, setTargetValue] = useState(15);
 
   const load = async () => {
-    try { const res = await usersApi.getAll({ limit: 100 }); setUsers(res.data.data); } catch {}
+    try { const res = await usersApi.getAll({ limit: 100 }); setUsers(res.data.data); } catch (err) { console.error(err); }
     setLoading(false);
   };
   useEffect(() => { load(); }, []);

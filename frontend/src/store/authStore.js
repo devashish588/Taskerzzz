@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import api from '../api/axios';
 
-const useAuthStore = create((set, get) => ({
+const useAuthStore = create((set) => ({
   user: null,
   isAuthenticated: false,
   isLoading: true,
@@ -19,7 +19,7 @@ const useAuthStore = create((set, get) => ({
   },
 
   logout: async () => {
-    try { await api.post('/auth/logout'); } catch {}
+    try { await api.post('/auth/logout'); } catch (err) { console.error(err); }
     set({ user: null, isAuthenticated: false });
   },
 

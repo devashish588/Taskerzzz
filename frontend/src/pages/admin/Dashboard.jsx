@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { FolderKanban, Users, CheckSquare, CheckCircle2, AlertTriangle, Clock, Flag, SkipForward, FileCheck } from 'lucide-react';
+import { FolderKanban, Users, CheckSquare, CheckCircle2, AlertTriangle, Flag, SkipForward, FileCheck } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, CartesianGrid } from 'recharts';
 import { analyticsApi } from '../../api/modules';
-import StatsCard from '../../components/StatsCard';
 import LoadingSkeleton from '../../components/LoadingSkeleton';
 
 const COLORS = { ASSIGNED: '#4d8da6', IN_PROGRESS: '#006A67', IN_REVIEW: '#FFF4B7', COMPLETED: '#2dd4a8', FLAGGED: '#ff8c42', SKIPPED: '#80a0b4' };

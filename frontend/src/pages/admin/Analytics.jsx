@@ -45,7 +45,12 @@ const Analytics = () => {
 
   const openTaskerDrillDown = async (tasker) => {
     setSelectedTasker(tasker);
-    try { const res = await analyticsApi.getTaskerTimeline(tasker.id, 30); setTaskerTimeline(res.data); } catch {}
+    try {
+      const res = await analyticsApi.getTaskerTimeline(tasker.id, 30);
+      setTaskerTimeline(res.data);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   if (loading) return <div className="space-y-4"><LoadingSkeleton type="stat" count={8} /><LoadingSkeleton type="chart" /><LoadingSkeleton type="chart" /></div>;
