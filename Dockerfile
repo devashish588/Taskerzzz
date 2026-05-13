@@ -1,6 +1,9 @@
 # Use Node 20 explicitly
 FROM node:20-alpine
 
+# Install openssl - required by Prisma on Alpine
+RUN apk add --no-cache openssl
+
 WORKDIR /app
 
 # Copy root package files
@@ -13,13 +16,19 @@ COPY backend ./backend
 COPY frontend ./frontend
 
 # Install backend dependencies and generate Prisma client
-RUN cd backend && npm install --include=dev && npx prisma generate
+WORKDIR /app/backend
+RUN npm install --include=dev && npx prisma generate
 
 # Install frontend dependencies and build
-RUN cd frontend && npm install --include=dev && npm run build
+WORKDIR /app/frontend
+RUN npm install --include=dev && npm run build
+
+# Set working directory to backend for runtime
+WORKDIR /app/backend
 
 # Expose port
 EXPOSE ${PORT:-5000}
 
 # Start: run migrations then start server
-CMD cd backend && npx prisma migrate deploy && node src/app.js
+# Use shell form so && chaining works
+CMD npx prisma migrate deploy && node src/app.js
