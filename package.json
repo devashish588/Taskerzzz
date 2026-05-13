@@ -9,7 +9,7 @@
     "dev:frontend": "cd frontend && npm run dev",
     "install:all": "cd backend && npm install && cd ../frontend && npm install",
     "build": "cd backend && npm install --include=dev && npx prisma generate && cd ../frontend && npm install --include=dev && npm run build",
-    "start": "cd backend && npx prisma migrate deploy && node src/app.js",
+    "start": "cd backend && npx prisma db push --skip-generate && (node prisma/seed.js || true) && node src/app.js",
     "seed": "cd backend && npm run seed",
     "prisma:migrate": "cd backend && npx prisma migrate dev",
     "prisma:generate": "cd backend && npx prisma generate"

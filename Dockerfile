@@ -29,5 +29,5 @@ WORKDIR /app/backend
 # Expose port
 EXPOSE ${PORT:-5000}
 
-# Start: migrate, seed (ignore errors if already seeded), then start server
-CMD sh -c "npx prisma migrate deploy && (node prisma/seed.js || true) && node src/app.js"
+# Start: push schema, seed demo data, then start server
+CMD sh -c "npx prisma db push --skip-generate && (node prisma/seed.js || true) && node src/app.js"

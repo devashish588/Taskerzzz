@@ -913,6 +913,15 @@ code, .mono { font-family: var(--font-mono); }
   font-family: var(--font-mono);
 }
 
+.login-demo-hint {
+  text-align: center;
+  font-size: 0.65rem;
+  color: var(--color-base-500);
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+
 @media (max-width: 480px) {
   .login-container {
     padding: 0 16px;

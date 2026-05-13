@@ -15,10 +15,10 @@ const LoginPage = () => {
   const onSubmit = async (data) => {
     try {
       const res = await login(data.email, data.password);
-      toast.success('Welcome back');
+      toast.success('Welcome back!');
       // Role-based redirect
       if (res.user?.role === 'ADMIN') {
-        navigate('/dashboard');
+        navigate('/admin/dashboard');
       } else {
         navigate('/dashboard');
       }
@@ -33,7 +33,7 @@ const LoginPage = () => {
       setValue('password', 'admin123');
       setActiveTab('ADMIN');
     } else {
-      setValue('email', 'alice@taskerzz.com');
+      setValue('email', 'tasker@taskerzz.com');
       setValue('password', 'tasker123');
       setActiveTab('TASKER');
     }
@@ -59,18 +59,18 @@ const LoginPage = () => {
           <button
             type="button"
             className={`login-tab ${activeTab === 'TASKER' ? 'login-tab--active' : ''}`}
-            onClick={() => { setActiveTab('TASKER'); fillDemo('TASKER'); }}
+            onClick={() => fillDemo('TASKER')}
           >
             <Users size={14} />
-            Tasker Login
+            Tasker
           </button>
           <button
             type="button"
             className={`login-tab ${activeTab === 'ADMIN' ? 'login-tab--active' : ''}`}
-            onClick={() => { setActiveTab('ADMIN'); fillDemo('ADMIN'); }}
+            onClick={() => fillDemo('ADMIN')}
           >
             <UserCog size={14} />
-            Admin Login
+            Admin
           </button>
         </div>
 
@@ -84,7 +84,7 @@ const LoginPage = () => {
                 pattern: { value: /^\S+@\S+\.\S+$/, message: 'Enter a valid email' }
               })}
               className="login-input"
-              placeholder={activeTab === 'ADMIN' ? 'admin@taskerzz.com' : 'alice@taskerzz.com'}
+              placeholder={activeTab === 'ADMIN' ? 'admin@taskerzz.com' : 'tasker@taskerzz.com'}
               type="email"
               autoComplete="email"
             />
@@ -130,7 +130,7 @@ const LoginPage = () => {
 
         {/* Demo credentials hint */}
         <div className="login-demo">
-          <p className="login-demo-label">Demo Credentials</p>
+          <p className="login-demo-label">Quick Access — Demo Accounts</p>
           <div className="login-demo-grid">
             <button type="button" className="login-demo-btn" onClick={() => fillDemo('ADMIN')}>
               <span className="login-demo-role">Admin</span>
@@ -138,9 +138,10 @@ const LoginPage = () => {
             </button>
             <button type="button" className="login-demo-btn" onClick={() => fillDemo('TASKER')}>
               <span className="login-demo-role">Tasker</span>
-              <span className="login-demo-email">alice@taskerzz.com</span>
+              <span className="login-demo-email">tasker@taskerzz.com</span>
             </button>
           </div>
+          <p className="login-demo-hint">Password: admin123 / tasker123</p>
         </div>
       </div>
     </div>

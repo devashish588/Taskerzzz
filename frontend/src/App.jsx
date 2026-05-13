@@ -50,6 +50,7 @@ function App() {
         {/* Protected with layout */}
         <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
           <Route path="/dashboard" element={<DashboardRouter />} />
+          <Route path="/admin/dashboard" element={<ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute>} />
           <Route path="/analytics" element={<ProtectedRoute adminOnly><Analytics /></ProtectedRoute>} />
           <Route path="/projects" element={<ProtectedRoute adminOnly><Projects /></ProtectedRoute>} />
           <Route path="/projects/:id" element={<ProjectDetail />} />
