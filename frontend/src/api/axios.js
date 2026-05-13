@@ -2,10 +2,19 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
-  withCredentials: true,
   headers: { 'Content-Type': 'application/json' },
 });
 
+// Attach token from localStorage to every request
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Handle 401 — try refresh, else redirect to login
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -18,7 +27,11 @@ api.interceptors.response.use(
   (res) => res,
   async (error) => {
     const original = error.config;
-    if (error.response?.status === 401 && error.response?.data?.code === 'TOKEN_EXPIRED' && !original._retry) {
+    if (
+      error.response?.status === 401 &&
+      error.response?.data?.code === 'TOKEN_EXPIRED' &&
+      !original._retry
+    ) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve: () => resolve(api(original)), reject });
@@ -27,11 +40,14 @@ api.interceptors.response.use(
       original._retry = true;
       isRefreshing = true;
       try {
-        await api.post('/auth/refresh');
+        const res = await api.post('/auth/refresh');
+        const newToken = res.data.token;
+        if (newToken) localStorage.setItem('token', newToken);
         processQueue(null);
         return api(original);
       } catch (err) {
         processQueue(err);
+        localStorage.removeItem('token');
         window.location.href = '/login';
         return Promise.reject(err);
       } finally {

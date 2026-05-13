@@ -7,29 +7,35 @@ import toast from 'react-hot-toast';
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [mode, setMode] = useState('login'); // 'login' | 'signup'
   const [activeTab, setActiveTab] = useState('TASKER');
-  const { login, register: registerUser } = useAuthStore();
+  const { login } = useAuthStore();
   const navigate = useNavigate();
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm();
-
-  const switchMode = (newMode) => {
-    setMode(newMode);
-    reset();
-  };
+  const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm();
 
   const onSubmit = async (data) => {
     try {
-      if (mode === 'signup') {
-        await registerUser(data.name, data.email, data.password, activeTab);
-        toast.success('Account created');
+      const res = await login(data.email, data.password);
+      toast.success('Welcome back');
+      // Role-based redirect
+      if (res.user?.role === 'ADMIN') {
+        navigate('/dashboard');
       } else {
-        await login(data.email, data.password);
-        toast.success('Welcome back');
+        navigate('/dashboard');
       }
-      navigate('/dashboard');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Something went wrong');
+      toast.error(err.response?.data?.message || 'Invalid credentials');
+    }
+  };
+
+  const fillDemo = (type) => {
+    if (type === 'ADMIN') {
+      setValue('email', 'admin@taskerzz.com');
+      setValue('password', 'admin123');
+      setActiveTab('ADMIN');
+    } else {
+      setValue('email', 'alice@taskerzz.com');
+      setValue('password', 'tasker123');
+      setActiveTab('TASKER');
     }
   };
 
@@ -39,7 +45,6 @@ const LoginPage = () => {
       <div className="login-ambient login-ambient--2" />
 
       <div className="login-container">
-        {/* Logo */}
         <div className="login-logo">
           <div className="login-logo-icon">
             <Zap size={20} strokeWidth={2.5} />
@@ -47,45 +52,30 @@ const LoginPage = () => {
           <span className="login-logo-text">Taskerzz</span>
         </div>
 
-        <p className="login-subtitle">
-          {mode === 'login' ? 'Sign in to your workspace' : 'Create your account'}
-        </p>
+        <p className="login-subtitle">Sign in to your workspace</p>
 
         {/* Role Tabs */}
         <div className="login-tabs">
           <button
             type="button"
             className={`login-tab ${activeTab === 'TASKER' ? 'login-tab--active' : ''}`}
-            onClick={() => setActiveTab('TASKER')}
+            onClick={() => { setActiveTab('TASKER'); fillDemo('TASKER'); }}
           >
             <Users size={14} />
-            Tasker
+            Tasker Login
           </button>
           <button
             type="button"
             className={`login-tab ${activeTab === 'ADMIN' ? 'login-tab--active' : ''}`}
-            onClick={() => setActiveTab('ADMIN')}
+            onClick={() => { setActiveTab('ADMIN'); fillDemo('ADMIN'); }}
           >
             <UserCog size={14} />
-            Admin
+            Admin Login
           </button>
         </div>
 
         {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="login-form">
-          {mode === 'signup' && (
-            <div className="login-field">
-              <label className="login-label">Full Name</label>
-              <input
-                {...register('name', { required: 'Name is required' })}
-                className="login-input"
-                placeholder="Your full name"
-                autoComplete="name"
-              />
-              {errors.name && <span className="login-error">{errors.name.message}</span>}
-            </div>
-          )}
-
           <div className="login-field">
             <label className="login-label">Email</label>
             <input
@@ -94,7 +84,7 @@ const LoginPage = () => {
                 pattern: { value: /^\S+@\S+\.\S+$/, message: 'Enter a valid email' }
               })}
               className="login-input"
-              placeholder={activeTab === 'ADMIN' ? 'admin@company.com' : 'you@company.com'}
+              placeholder={activeTab === 'ADMIN' ? 'admin@taskerzz.com' : 'alice@taskerzz.com'}
               type="email"
               autoComplete="email"
             />
@@ -112,7 +102,7 @@ const LoginPage = () => {
                 className="login-input"
                 placeholder="••••••••"
                 type={showPassword ? 'text' : 'password'}
-                autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+                autoComplete="current-password"
               />
               <button
                 type="button"
@@ -131,26 +121,26 @@ const LoginPage = () => {
               <span className="login-spinner" />
             ) : (
               <>
-                {mode === 'login' ? 'Sign In' : 'Create Account'}
+                Sign In
                 <ArrowRight size={15} />
               </>
             )}
           </button>
         </form>
 
-        {/* Toggle */}
-        <div className="login-toggle">
-          {mode === 'login' ? (
-            <>
-              Don't have an account?{' '}
-              <button type="button" onClick={() => switchMode('signup')}>Sign up</button>
-            </>
-          ) : (
-            <>
-              Already have an account?{' '}
-              <button type="button" onClick={() => switchMode('login')}>Sign in</button>
-            </>
-          )}
+        {/* Demo credentials hint */}
+        <div className="login-demo">
+          <p className="login-demo-label">Demo Credentials</p>
+          <div className="login-demo-grid">
+            <button type="button" className="login-demo-btn" onClick={() => fillDemo('ADMIN')}>
+              <span className="login-demo-role">Admin</span>
+              <span className="login-demo-email">admin@taskerzz.com</span>
+            </button>
+            <button type="button" className="login-demo-btn" onClick={() => fillDemo('TASKER')}>
+              <span className="login-demo-role">Tasker</span>
+              <span className="login-demo-email">alice@taskerzz.com</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
