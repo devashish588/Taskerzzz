@@ -11,35 +11,39 @@ const COOKIE_OPTIONS = {
   path: '/',
 };
 
-// Register — first user becomes ADMIN
+// Register — allows role selection (ADMIN or TASKER)
 const register = async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
+
+    // Validation
+    if (!name || !email || !password) {
+      return res.status(400).json({ success: false, message: 'Name, email, and password are required' });
+    }
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      return res.status(400).json({ success: false, message: 'Invalid email format' });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
+    }
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
-      return res.status(409).json({ error: 'Email already registered' });
+      return res.status(409).json({ success: false, message: 'Email already registered' });
     }
 
-    // Check if this is the first user
-    const userCount = await prisma.user.count();
-    const role = userCount === 0 ? 'ADMIN' : 'TASKER';
-
-    // Only allow registration for first user (admin) or via invite
-    if (userCount > 0) {
-      return res.status(403).json({ error: 'Registration is invite-only. Contact your admin.' });
-    }
+    // Allow role selection — default to TASKER
+    const userRole = ['ADMIN', 'TASKER'].includes(role) ? role : 'TASKER';
 
     const hashedPassword = await bcrypt.hash(password, 12);
     const user = await prisma.user.create({
-      data: { name, email, password: hashedPassword, role },
+      data: { name, email, password: hashedPassword, role: userRole },
       select: { id: true, name: true, email: true, role: true, avatar: true, createdAt: true },
     });
 
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
-    // Store refresh token in DB
     await prisma.refreshToken.create({
       data: {
         token: refreshToken,
@@ -51,7 +55,7 @@ const register = async (req, res, next) => {
     res.cookie('accessToken', accessToken, { ...COOKIE_OPTIONS, maxAge: 15 * 60 * 1000 });
     res.cookie('refreshToken', refreshToken, { ...COOKIE_OPTIONS, maxAge: 7 * 24 * 60 * 60 * 1000 });
 
-    res.status(201).json({ user, accessToken });
+    res.status(201).json({ success: true, token: accessToken, user });
   } catch (error) {
     next(error);
   }
@@ -62,20 +66,27 @@ const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
+    // Validation
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: 'Email and password are required' });
+    }
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      return res.status(400).json({ success: false, message: 'Invalid email format' });
+    }
+
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user || !user.isActive) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
 
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
 
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
-    // Store refresh token
     await prisma.refreshToken.create({
       data: {
         token: refreshToken,
@@ -88,7 +99,7 @@ const login = async (req, res, next) => {
     res.cookie('refreshToken', refreshToken, { ...COOKIE_OPTIONS, maxAge: 7 * 24 * 60 * 60 * 1000 });
 
     const { password: _, ...userData } = user;
-    res.json({ user: userData, accessToken });
+    res.json({ success: true, token: accessToken, user: userData });
   } catch (error) {
     next(error);
   }
@@ -104,7 +115,7 @@ const logout = async (req, res, next) => {
 
     res.clearCookie('accessToken', COOKIE_OPTIONS);
     res.clearCookie('refreshToken', COOKIE_OPTIONS);
-    res.json({ message: 'Logged out successfully' });
+    res.json({ success: true, message: 'Logged out successfully' });
   } catch (error) {
     next(error);
   }
@@ -115,18 +126,17 @@ const refresh = async (req, res, next) => {
   try {
     const refreshToken = req.cookies?.refreshToken || req.body.refreshToken;
     if (!refreshToken) {
-      return res.status(401).json({ error: 'Refresh token required' });
+      return res.status(401).json({ success: false, message: 'Refresh token required' });
     }
 
     const decoded = verifyRefreshToken(refreshToken);
 
-    // Check token exists in DB
     const storedToken = await prisma.refreshToken.findUnique({
       where: { token: refreshToken },
     });
 
     if (!storedToken || storedToken.expiresAt < new Date()) {
-      return res.status(401).json({ error: 'Invalid or expired refresh token' });
+      return res.status(401).json({ success: false, message: 'Invalid or expired refresh token' });
     }
 
     const user = await prisma.user.findUnique({
@@ -135,7 +145,7 @@ const refresh = async (req, res, next) => {
     });
 
     if (!user || !user.isActive) {
-      return res.status(401).json({ error: 'User not found or deactivated' });
+      return res.status(401).json({ success: false, message: 'User not found or deactivated' });
     }
 
     // Rotate refresh token
@@ -155,7 +165,7 @@ const refresh = async (req, res, next) => {
     res.cookie('accessToken', newAccessToken, { ...COOKIE_OPTIONS, maxAge: 15 * 60 * 1000 });
     res.cookie('refreshToken', newRefreshToken, { ...COOKIE_OPTIONS, maxAge: 7 * 24 * 60 * 60 * 1000 });
 
-    res.json({ user, accessToken: newAccessToken });
+    res.json({ success: true, token: newAccessToken, user });
   } catch (error) {
     next(error);
   }
@@ -167,9 +177,8 @@ const forgotPassword = async (req, res, next) => {
     const { email } = req.body;
     const user = await prisma.user.findUnique({ where: { email } });
 
-    // Always respond success (don't reveal if email exists)
     if (!user) {
-      return res.json({ message: 'If the email exists, a reset link has been sent' });
+      return res.json({ success: true, message: 'If the email exists, a reset link has been sent' });
     }
 
     const token = crypto.randomBytes(32).toString('hex');
@@ -177,12 +186,12 @@ const forgotPassword = async (req, res, next) => {
       data: {
         email,
         token,
-        expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 hour
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000),
       },
     });
 
     await sendPasswordResetEmail(email, token);
-    res.json({ message: 'If the email exists, a reset link has been sent' });
+    res.json({ success: true, message: 'If the email exists, a reset link has been sent' });
   } catch (error) {
     next(error);
   }
@@ -198,7 +207,7 @@ const resetPassword = async (req, res, next) => {
     });
 
     if (!resetToken || resetToken.used || resetToken.expiresAt < new Date()) {
-      return res.status(400).json({ error: 'Invalid or expired reset token' });
+      return res.status(400).json({ success: false, message: 'Invalid or expired reset token' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
@@ -212,7 +221,7 @@ const resetPassword = async (req, res, next) => {
       data: { used: true },
     });
 
-    res.json({ message: 'Password reset successfully' });
+    res.json({ success: true, message: 'Password reset successfully' });
   } catch (error) {
     next(error);
   }
@@ -225,7 +234,7 @@ const invite = async (req, res, next) => {
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
-      return res.status(409).json({ error: 'User with this email already exists' });
+      return res.status(409).json({ success: false, message: 'User with this email already exists' });
     }
 
     const token = crypto.randomBytes(32).toString('hex');
@@ -233,12 +242,12 @@ const invite = async (req, res, next) => {
       data: {
         email,
         token,
-        expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000), // 48 hours
+        expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000),
       },
     });
 
     await sendInviteEmail(email, token);
-    res.json({ message: `Invite sent to ${email}`, token });
+    res.json({ success: true, message: `Invite sent to ${email}`, token });
   } catch (error) {
     next(error);
   }
@@ -254,7 +263,7 @@ const acceptInvite = async (req, res, next) => {
     });
 
     if (!inviteToken || inviteToken.used || inviteToken.expiresAt < new Date()) {
-      return res.status(400).json({ error: 'Invalid or expired invite token' });
+      return res.status(400).json({ success: false, message: 'Invalid or expired invite token' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
@@ -287,7 +296,7 @@ const acceptInvite = async (req, res, next) => {
     res.cookie('accessToken', accessToken, { ...COOKIE_OPTIONS, maxAge: 15 * 60 * 1000 });
     res.cookie('refreshToken', refreshToken, { ...COOKIE_OPTIONS, maxAge: 7 * 24 * 60 * 60 * 1000 });
 
-    res.status(201).json({ user, accessToken });
+    res.status(201).json({ success: true, token: accessToken, user });
   } catch (error) {
     next(error);
   }

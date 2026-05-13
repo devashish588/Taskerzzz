@@ -12,8 +12,8 @@ const useAuthStore = create((set) => ({
     return res.data;
   },
 
-  register: async (name, email, password) => {
-    const res = await api.post('/auth/register', { name, email, password });
+  register: async (name, email, password, role = 'TASKER') => {
+    const res = await api.post('/auth/register', { name, email, password, role });
     set({ user: res.data.user, isAuthenticated: true });
     return res.data;
   },

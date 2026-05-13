@@ -29,6 +29,5 @@ WORKDIR /app/backend
 # Expose port
 EXPOSE ${PORT:-5000}
 
-# Start: run migrations then start server
-# Use shell form so && chaining works
-CMD npx prisma migrate deploy && node src/app.js
+# Start: run migrations, seed database, then start server
+CMD npx prisma migrate deploy && node prisma/seed.js; node src/app.js
